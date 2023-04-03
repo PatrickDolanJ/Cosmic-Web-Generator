@@ -27,13 +27,14 @@ public class BezierCurve
 
     public Vector3[] GetSegments(int subDivisions)
     {
-        Vector3[] segments = new Vector3[subDivisions];
+        Vector3[] segments = new Vector3[subDivisions + 1];
         float time;
         for (int i = 0; i < subDivisions; i++)
         {
             time = (float)i / subDivisions;
             segments[i] = GetSegment(time);
         }
+        segments[subDivisions] = EndPosition;
         return segments;
     }
 

@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
+using System.Net;
 
 public class GenerateCosmicStrings : MonoBehaviour
 {
@@ -12,7 +14,7 @@ public class GenerateCosmicStrings : MonoBehaviour
     public float SpacingBetweenGalaxies = 0.05f;
     public float GalaxySize = 0.05f;
 
-    private List<Vector3> UniqueVertices;
+    private List<Vector3> CornerVertices;
     private List<List<Vector3>> Faces = new List<List<Vector3>>();
     private List<Vector3> vertices;
     private int FaceVertexCount = 4;
@@ -20,7 +22,7 @@ public class GenerateCosmicStrings : MonoBehaviour
     private List<Vector3> CenterPoints = new List<Vector3>();
     private bool ShouldDrawLines = false;
     private List<Vector3> GalaxiePositions = new List<Vector3>();
-
+    private List<BezierCurve>  Strings = new List<BezierCurve>();
 
     public void GenerateRandomPoints()
     {
@@ -30,7 +32,7 @@ public class GenerateCosmicStrings : MonoBehaviour
         RandomPoints.Clear();
         for (int i = 0; i < NumberOfPointPairs; i++)
         {
-            RandomPoints.Add(MakeEndPoints(Random.Range(0, Faces.Count)));
+            RandomPoints.Add(MakeEndPoints(UnityEngine.Random.Range(0, Faces.Count)));
         }
     }
 
@@ -46,7 +48,7 @@ public class GenerateCosmicStrings : MonoBehaviour
             gloablVertices.Add(transform.TransformPoint(vert));
         }
 
-        UniqueVertices = gloablVertices.Distinct().ToList();
+        CornerVertices = gloablVertices.Distinct().ToList();
 
         List<Vector3> oneFace = new List<Vector3>();
         int numOfVertices = gloablVertices.Count;
@@ -64,10 +66,10 @@ public class GenerateCosmicStrings : MonoBehaviour
     private Vector3 RandomPointsOnCube(int faceIndex)
     {
         List<Vector3> face = Faces[faceIndex];
-        int randomCornerId = Random.Range(0, 2) == 0 ? 0 : 2;
+        int randomCornerId = UnityEngine.Random.Range(0, 2) == 0 ? 0 : 2;
         randomCornerId = 0;
-        float u = Random.Range(0, 1f);
-        float v = Random.Range(0, 1f);
+        float u = UnityEngine.Random.Range(0, 1f);
+        float v = UnityEngine.Random.Range(0, 1f);
         if (v + u > 1)
         {
             v = 1 - v;
@@ -91,10 +93,10 @@ public class GenerateCosmicStrings : MonoBehaviour
         }
         else
         {
-            opposingFaceIndex = Random.Range(0, Faces.Count);
+            opposingFaceIndex = UnityEngine.Random.Range(0, Faces.Count);
             while (opposingFaceIndex == faceIndex)
             {
-                opposingFaceIndex = Random.Range(0, Faces.Count);
+                opposingFaceIndex = UnityEngine.Random.Range(0, Faces.Count);
             }
         }
         Vector3 startPoint = RandomPointsOnCube(faceIndex);
@@ -121,9 +123,10 @@ public class GenerateCosmicStrings : MonoBehaviour
         if (ShouldDrawLines)
         {
             Gizmos.color = Color.green;
-            foreach (EndPointPairs pair in RandomPoints)
+            foreach (BezierCurve curve in Strings)
             {
-                Gizmos.DrawLine(pair.StartPoint, pair.EndPoint);
+                Vector3[] points = curve.GetSegments(10);
+                points.Skip(1).ToList().ForEach(p => Gizmos.DrawLine(points[Array.IndexOf(points, p) - 1], p));
             }
         }
 
@@ -139,6 +142,13 @@ public class GenerateCosmicStrings : MonoBehaviour
     public void ConnectPoints()
     {
         ShouldDrawLines = !ShouldDrawLines;
+        foreach(EndPointPairs endPoint in RandomPoints)
+        {
+            Vector3[] points = {endPoint.StartPoint, Vector3.zero,endPoint.EndPoint};
+            points[1] = transform.position;
+            BezierCurve curve = new BezierCurve(points);
+            Strings.Add(curve);
+        }
     }
 
     private void GetCenterOfFaces()
@@ -163,7 +173,6 @@ public class GenerateCosmicStrings : MonoBehaviour
             sphere.name = i.ToString();
             sphere.transform.localScale = Vector3.one * 0.004f;
             sphere.tag = "center";
-            print($"Point: {middlePoint} @ {i}");
             i++;
         }
     }
@@ -173,15 +182,10 @@ public class GenerateCosmicStrings : MonoBehaviour
         GalaxiePositions = new List<Vector3>();
         float localSpacing = gameObject.GetComponent<BoxCollider>().size.x / SubDivisions;
         float halfOfDivisions = localSpacing * (SubDivisions / 2f);
-        Vector3 startVector = UniqueVertices.Aggregate((v1, v2) => { return v1.magnitude < v2.magnitude ? v1 : v2; });
+
+        Vector3 startVector = transform.position;
         startVector = transform.InverseTransformPoint(startVector);
 
-        float minX = transform.position.x;      // - (SubDivisions / 2f) * localSpacing;
-        float minY = transform.position.y;      // - (SubDivisions / 2f) * localSpacing;
-        float minZ = transform.position.z;      // - (SubDivisions / 2f) * localSpacing;
-
-        startVector = new Vector3(minX,minY,minZ);
-        startVector = transform.InverseTransformPoint(startVector);
         startVector.x -= halfOfDivisions;
         startVector.y -= halfOfDivisions;
         startVector.z -= halfOfDivisions;
