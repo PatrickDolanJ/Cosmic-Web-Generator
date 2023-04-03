@@ -15,5 +15,21 @@ public class GenerateCosmicStringsGUI : Editor
         {
             stringGenerator.GenerateRandomPoints();
         }
+
+        if(GUILayout.Button("Generate Curves Between Points"))
+        {
+            stringGenerator.ConnectPoints();
+        }
+
+        if(GUILayout.Button("Generate Galaxy Positions"))
+        {
+            stringGenerator.SpawnGalaxies();
+        }
+
+        if(GUILayout.Button("Delete Galaxies"))
+        {
+            stringGenerator.DeleteGalaxies();
+        }
+
     }
 }
