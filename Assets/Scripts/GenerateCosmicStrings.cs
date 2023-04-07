@@ -69,7 +69,7 @@ public class GenerateCosmicStrings : MonoBehaviour
     {
         CoordinatePositions = new List<Vector3>();
         Cubes.ForEach(item => DestroyImmediate(item));
-        float localSpacing = gameObject.GetComponent<BoxCollider>().size.x / SubDivisions;
+        float localSpacing = gameObject.GetComponent<BoxCollider>().size.x / (SubDivisions + 1);
         float halfOfDivisions = localSpacing * (SubDivisions / 2f);
 
         Vector3 startVector = transform.position;
@@ -231,10 +231,7 @@ public class GenerateCosmicStrings : MonoBehaviour
 
         foreach (GameObject center in centers)
         {
-            if (center != null)
-            {
                 DestroyImmediate(center);
-            }
         }
 
         foreach (List<Vector3> face in Faces)
@@ -308,19 +305,6 @@ public class GenerateCosmicStrings : MonoBehaviour
 
         Vector3 randomPoint = face[randomCornerId] + u * edgeCorners[0] + v * edgeCorners[1];
         return randomPoint;
-    }
-
-    public void CheckBoundingBox()
-    {
-        foreach (GameObject cube in Cubes)
-        {
-            if (cube.GetComponent<BoxCollider>().bounds.Contains(QuantizedStringPositions[60]))
-            {
-                print(QuantizedStringPositions[60]);
-            }
-
-        }
-
     }
 
     public void OnDrawGizmos()

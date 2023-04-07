@@ -67,11 +67,5 @@ public class GenerateCosmicStringsGUI : Editor
         {
             stringGenerator.DeleteUniverse();
         }
-
-        if(GUILayout.Button("Debug Bounding Boxes"))
-        {
-            stringGenerator.CheckBoundingBox();
-        }
-
     }
 }
