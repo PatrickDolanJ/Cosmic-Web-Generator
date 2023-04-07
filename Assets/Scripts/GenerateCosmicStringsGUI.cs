@@ -9,26 +9,68 @@ public class GenerateCosmicStringsGUI : Editor
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
+
+        GUILayout.Space(20);
+
         GenerateCosmicStrings stringGenerator = (GenerateCosmicStrings)target;
 
-        if (GUILayout.Button("Generate Random Points on Surface"))
+        if (GUILayout.Button("Generate EndPoints for Strings"))
         {
-            stringGenerator.GenerateRandomPoints();
+            stringGenerator.GenerateEndPoints();
         }
 
-        if(GUILayout.Button("Generate Curves Between Points"))
+        if(GUILayout.Button("Generate Strings Between EndPoints"))
         {
             stringGenerator.ConnectPoints();
         }
 
-        if(GUILayout.Button("Generate Galaxy Positions"))
+        if(GUILayout.Button("Generate Coordinate Objects"))
         {
-            stringGenerator.SpawnGalaxies();
+            stringGenerator.SpawnCoordinates();
         }
 
-        if(GUILayout.Button("Delete Galaxies"))
+
+        if(GUILayout.Button("Generate Random Points Inside Cube"))
         {
-            stringGenerator.DeleteGalaxies();
+            stringGenerator.GenerateRandomPointsInsideCube();
+        }
+        
+        if(GUILayout.Button("Quantize Strings"))
+        {
+            stringGenerator.MakeQuantizeStringPositions();
+        }
+
+        if(GUILayout.Button("Spawn Galaxies"))
+        {
+            stringGenerator.GenerateGalaxies();
+        }
+
+        if(GUILayout.Button("Build A Universe"))
+        {
+            stringGenerator.BuildUniverse();
+        }
+
+
+        GUILayout.Space(20);
+
+        if (GUILayout.Button("Delete Coordinate Objects"))
+        {
+            stringGenerator.DeleteCoordinates();
+        }
+
+        if(GUILayout.Button("Delete Random Points in Cube"))
+        {
+            stringGenerator.DeleteRandomPointsInsideCube();
+        }
+
+        if(GUILayout.Button("Destroy Universe"))
+        {
+            stringGenerator.DeleteUniverse();
+        }
+
+        if(GUILayout.Button("Debug Bounding Boxes"))
+        {
+            stringGenerator.CheckBoundingBox();
         }
 
     }
