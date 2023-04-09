@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
+using UnityEditor;
 
-
+[ExecuteAlways]
 public class GenerateCosmicStrings : MonoBehaviour
 {
     public float GizmoSize = 0.05f;
@@ -29,6 +30,7 @@ public class GenerateCosmicStrings : MonoBehaviour
 
     private int FaceVertexCount = 4;
     private bool ShouldDrawLines = false;
+    private ParticleSystem particleSystem;
 
     private List<Vector3> CornerVertices;
     private List<Vector3> vertices;
@@ -37,10 +39,21 @@ public class GenerateCosmicStrings : MonoBehaviour
     private List<Vector3> CenterPoints = new List<Vector3>();
     private List<Vector3> CoordinatePositions = new List<Vector3>();
     private List<BezierCurve> Strings = new List<BezierCurve>();
-    private List<Vector3> RandomPointsInside = new List<Vector3>();
+    public List<Vector3> RandomPointsInside = new List<Vector3>();
     public List<GameObject> Cubes = new List<GameObject>();
     public List<Vector3> QuantizedStringPositions = new List<Vector3>();
     public List<Vector3> GalaxyPositions = new List<Vector3>();
+
+
+    public void Start()
+    {
+        particleSystem = GetComponent<ParticleSystem>();
+        for (int i = 0; i < GalaxyPositions.Count; i++)
+        {
+            particleSystem.transform.position = GalaxyPositions[i];
+            particleSystem.Emit(1);
+        }
+    }
 
     public void GenerateEndPoints()
     {
@@ -65,6 +78,16 @@ public class GenerateCosmicStrings : MonoBehaviour
             Strings.Add(curve);
         }
     }
+    public void MakeQuantizeStringPositions()
+    {
+        QuantizedStringPositions.Clear();
+        BoxCollider boxCollider = gameObject.GetComponent<BoxCollider>();
+        foreach (BezierCurve curve in Strings)
+        {
+            List<Vector3> curvePoints = curve.GetSegments(StringQuantizationDivisions).ToList();
+            QuantizedStringPositions.AddRange(curvePoints);
+        }
+    }
     public void SpawnCoordinates()
     {
         CoordinatePositions = new List<Vector3>();
@@ -78,6 +101,7 @@ public class GenerateCosmicStrings : MonoBehaviour
         startVector.x -= halfOfDivisions;
         startVector.y -= halfOfDivisions;
         startVector.z -= halfOfDivisions;
+        float middlePoint = localSpacing / 2f;
 
 
         for (int x = 0; x <= SubDivisions; x++)
@@ -98,7 +122,6 @@ public class GenerateCosmicStrings : MonoBehaviour
                     if (x != SubDivisions && y != SubDivisions && z != SubDivisions)
                     {
                         Vector3 localPosition = transform.InverseTransformPoint(galaxyPosition);
-                        float middlePoint = localSpacing / 2f;
                         Vector3 cubePosition = new Vector3(localPosition.x + middlePoint,
                                                            localPosition.y + middlePoint,
                                                            localPosition.z + middlePoint);
@@ -135,17 +158,23 @@ public class GenerateCosmicStrings : MonoBehaviour
         if (Cubes == null || Cubes.Count == 0)
         {
             SpawnCoordinates();
+
         }
 
         if (QuantizedStringPositions == null || QuantizedStringPositions.Count == 0)
         {
             MakeQuantizeStringPositions();
+
         }
+
+        //EditorApplication.ExecuteMenuItem();
+
 
         if (GalaxyPositions == null || GalaxyPositions.Count == 0)
         {
             GenerateGalaxies();
         }
+
     }
 
 
@@ -169,10 +198,9 @@ public class GenerateCosmicStrings : MonoBehaviour
         RandomPointsInside.Clear();
     }
 
-
     public void GenerateGalaxies()
     {
-        GalaxyPositions.Clear();
+
         foreach (GameObject cube in Cubes)
         {
             foreach (Vector3 stringPos in QuantizedStringPositions)
@@ -188,16 +216,6 @@ public class GenerateCosmicStrings : MonoBehaviour
         }
     }
 
-    public void MakeQuantizeStringPositions()
-    {
-        QuantizedStringPositions.Clear();
-        BoxCollider boxCollider = gameObject.GetComponent<BoxCollider>();
-        foreach (BezierCurve curve in Strings)
-        {
-            List<Vector3> curvePoints = curve.GetSegments(StringQuantizationDivisions).ToList();
-            QuantizedStringPositions.AddRange(curvePoints);
-        }
-    }
     private void FindFaces()
     {
         Faces.Clear();
@@ -231,7 +249,7 @@ public class GenerateCosmicStrings : MonoBehaviour
 
         foreach (GameObject center in centers)
         {
-                DestroyImmediate(center);
+            DestroyImmediate(center);
         }
 
         foreach (List<Vector3> face in Faces)
@@ -269,9 +287,9 @@ public class GenerateCosmicStrings : MonoBehaviour
     {
         BoxCollider collider = cubeTransform.gameObject.GetComponent<BoxCollider>();
         Vector3 halfSize = collider.size / 2f;
-        float x = UnityEngine.Random.Range(-halfSize.x,halfSize.x);                 
-        float y = UnityEngine.Random.Range(-halfSize.y,halfSize.y);                 
-        float z = UnityEngine.Random.Range(-halfSize.z,halfSize.z);                 
+        float x = UnityEngine.Random.Range(-halfSize.x, halfSize.x);
+        float y = UnityEngine.Random.Range(-halfSize.y, halfSize.y);
+        float z = UnityEngine.Random.Range(-halfSize.z, halfSize.z);
         Vector3 newPoint = new Vector3(x, y, z);
         return cubeTransform.TransformPoint(newPoint);
     }
@@ -279,7 +297,7 @@ public class GenerateCosmicStrings : MonoBehaviour
     {
         RandomPointsInside.Clear();
 
-        
+
 
         for (int i = 0; i < NumberOfRandomPointsInsideCube; i++)
         {
@@ -306,6 +324,20 @@ public class GenerateCosmicStrings : MonoBehaviour
         Vector3 randomPoint = face[randomCornerId] + u * edgeCorners[0] + v * edgeCorners[1];
         return randomPoint;
     }
+
+    //private void ForceUpdateOfHierarchy()
+    //{
+    //    string projectPath = ProjectPath.FromApplicationDataPath(
+    //          Application.dataPath);
+    //
+    //    string projectGuid = SetupCloudProjectId.GetCloudProjectId();
+    //
+    //    Execute(
+    //        CloudProjectSettings.accessToken,
+    //        projectPath,
+    //        projectGuid);
+    //}
+
 
     public void OnDrawGizmos()
     {

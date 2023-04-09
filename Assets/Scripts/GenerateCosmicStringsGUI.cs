@@ -50,7 +50,6 @@ public class GenerateCosmicStringsGUI : Editor
             stringGenerator.BuildUniverse();
         }
 
-
         GUILayout.Space(20);
 
         if (GUILayout.Button("Delete Coordinate Objects"))
